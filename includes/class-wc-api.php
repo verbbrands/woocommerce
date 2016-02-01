@@ -23,8 +23,14 @@ class WC_API {
 	 * first-order position in endpoint URLs.
 	 *
 	 * @var string
+	 * @deprecated 2.6.0
 	 */
 	const VERSION = '3.1.0';
+
+	/**
+	 * WP REST API namespace/version.
+	 */
+	const REST_API_NAMESPACE = 'woocommerce/v1';
 
 	/**
 	 * The REST API server.
@@ -63,6 +69,9 @@ class WC_API {
 
 		// Ensure payment gateways are initialized in time for API requests.
 		add_action( 'woocommerce_api_request', array( 'WC_Payment_Gateways', 'instance' ), 0 );
+
+		// WP REST API.
+		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 	}
 
 	/**
@@ -167,6 +176,40 @@ class WC_API {
 
 		// Allow plugins to load other response handlers or resource classes.
 		do_action( 'woocommerce_api_loaded' );
+	}
+
+	public function rest_api_includes() {
+		include_once( 'abstracts/abstract-wc-rest-controller.php' );
+		include_once( 'api/wc-rest-coupons-controller.php' );
+	}
+
+	public function register_rest_routes() {
+		$this->rest_api_includes();
+
+		$controllers = apply_filters( 'woocommerce_rest_api_controllers',
+			array(
+				'WC_REST_Coupons_Controller',
+			)
+		);
+
+		foreach ( $controllers as $controller ) {
+			$_controller = new $controller();
+			if ( ! is_subclass_of( $_controller, 'WC_REST_Controller' ) ) {
+				continue;
+			}
+
+			$this->$controller = $_controller;
+			$this->$controller->register_routes();
+		}
+	}
+
+	/**
+	 * Returns a contextual HTTP error code for authorization failure.
+	 *
+	 * @return integer
+	 */
+	public static function authorization_required_code() {
+		return is_user_logged_in() ? 403 : 401;
 	}
 
 	/**
