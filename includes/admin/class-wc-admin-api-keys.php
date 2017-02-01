@@ -26,16 +26,15 @@ class WC_Admin_API_Keys {
 
 	/**
 	 * Check if is API Keys settings page.
-	 *
 	 * @return bool
 	 */
 	private function is_api_keys_settings_page() {
 		return isset( $_GET['page'] )
-			&& 'wc-settings' == $_GET['page']
+			&& 'wc-settings' === $_GET['page']
 			&& isset( $_GET['tab'] )
-			&& 'api' == $_GET['tab']
+			&& 'api' === $_GET['tab']
 			&& isset( $_GET['section'] )
-			&& 'keys' == isset( $_GET['section'] );
+			&& 'keys' === $_GET['section'];
 	}
 
 	/**
@@ -59,7 +58,7 @@ class WC_Admin_API_Keys {
 	 * Table list output.
 	 */
 	private static function table_list_output() {
-		echo '<h3>' . __( 'Keys/Apps', 'woocommerce' ) . ' <a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=api&section=keys&create-key=1' ) ) . '" class="add-new-h2">' . __( 'Add Key', 'woocommerce' ) . '</a></h3>';
+		echo '<h2>' . __( 'Keys/Apps', 'woocommerce' ) . ' <a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=api&section=keys&create-key=1' ) ) . '" class="add-new-h2">' . __( 'Add key', 'woocommerce' ) . '</a></h2>';
 
 		$keys_table_list = new WC_Admin_API_Keys_Table_List();
 		$keys_table_list->prepare_items();
@@ -69,7 +68,7 @@ class WC_Admin_API_Keys {
 		echo '<input type="hidden" name="section" value="keys" />';
 
 		$keys_table_list->views();
-		$keys_table_list->search_box( __( 'Search Key', 'woocommerce' ), 'key' );
+		$keys_table_list->search_box( __( 'Search key', 'woocommerce' ), 'key' );
 		$keys_table_list->display();
 	}
 
@@ -88,7 +87,7 @@ class WC_Admin_API_Keys {
 			'description'   => '',
 			'permissions'   => '',
 			'truncated_key' => '',
-			'last_access'   => ''
+			'last_access'   => '',
 		);
 
 		if ( 0 == $key_id ) {
@@ -130,7 +129,7 @@ class WC_Admin_API_Keys {
 	 */
 	public static function notices() {
 		if ( isset( $_GET['revoked'] ) && 1 == $_GET['revoked'] ) {
-			WC_Admin_Settings::add_message( __( 'API Key revoked successfully.', 'woocommerce' ) );
+			WC_Admin_Settings::add_message( __( 'API key revoked successfully.', 'woocommerce' ) );
 		}
 	}
 

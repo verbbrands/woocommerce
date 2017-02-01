@@ -33,7 +33,7 @@ class WC_Admin_Permalink_Settings {
 	 */
 	public function settings_init() {
 		// Add a section to the permalinks page
-		add_settings_section( 'woocommerce-permalink', __( 'Product Permalinks', 'woocommerce' ), array( $this, 'settings' ), 'permalink' );
+		add_settings_section( 'woocommerce-permalink', __( 'Product permalinks', 'woocommerce' ), array( $this, 'settings' ), 'permalink' );
 
 		// Add our settings
 		add_settings_field(
@@ -65,7 +65,7 @@ class WC_Admin_Permalink_Settings {
 	public function product_category_slug_input() {
 		$permalinks = get_option( 'woocommerce_permalinks' );
 		?>
-		<input name="woocommerce_product_category_slug" type="text" class="regular-text code" value="<?php if ( isset( $permalinks['category_base'] ) ) echo esc_attr( $permalinks['category_base'] ); ?>" placeholder="<?php echo esc_attr_x('product-category', 'slug', 'woocommerce') ?>" />
+		<input name="woocommerce_product_category_slug" type="text" class="regular-text code" value="<?php if ( isset( $permalinks['category_base'] ) ) echo esc_attr( $permalinks['category_base'] ); ?>" placeholder="<?php echo esc_attr_x( 'product-category', 'slug', 'woocommerce' ) ?>" />
 		<?php
 	}
 
@@ -75,7 +75,7 @@ class WC_Admin_Permalink_Settings {
 	public function product_tag_slug_input() {
 		$permalinks = get_option( 'woocommerce_permalinks' );
 		?>
-		<input name="woocommerce_product_tag_slug" type="text" class="regular-text code" value="<?php if ( isset( $permalinks['tag_base'] ) ) echo esc_attr( $permalinks['tag_base'] ); ?>" placeholder="<?php echo esc_attr_x('product-tag', 'slug', 'woocommerce') ?>" />
+		<input name="woocommerce_product_tag_slug" type="text" class="regular-text code" value="<?php if ( isset( $permalinks['tag_base'] ) ) echo esc_attr( $permalinks['tag_base'] ); ?>" placeholder="<?php echo esc_attr_x( 'product-tag', 'slug', 'woocommerce' ) ?>" />
 		<?php
 	}
 
@@ -96,7 +96,7 @@ class WC_Admin_Permalink_Settings {
 		echo wpautop( __( 'These settings control the permalinks used specifically for products.', 'woocommerce' ) );
 
 		$permalinks        = get_option( 'woocommerce_permalinks' );
-		$product_permalink = $permalinks['product_base'];
+		$product_permalink = isset( $permalinks['product_base'] ) ? $permalinks['product_base'] : '';
 
 		// Get shop page
 		$shop_page_id   = wc_get_page_id( 'shop' );
@@ -106,7 +106,7 @@ class WC_Admin_Permalink_Settings {
 		$structures = array(
 			0 => '',
 			1 => '/' . trailingslashit( $base_slug ),
-			2 => '/' . trailingslashit( $base_slug ) . trailingslashit( '%product_cat%' )
+			2 => '/' . trailingslashit( $base_slug ) . trailingslashit( '%product_cat%' ),
 		);
 		?>
 		<table class="form-table wc-permalink-structure">
@@ -127,7 +127,7 @@ class WC_Admin_Permalink_Settings {
 				<?php endif; ?>
 				<tr>
 					<th><label><input name="product_permalink" id="woocommerce_custom_selection" type="radio" value="custom" class="tog" <?php checked( in_array( $product_permalink, $structures ), false ); ?> />
-						<?php _e( 'Custom Base', 'woocommerce' ); ?></label></th>
+						<?php _e( 'Custom base', 'woocommerce' ); ?></label></th>
 					<td>
 						<input name="product_permalink_structure" id="woocommerce_permalink_structure" type="text" value="<?php echo esc_attr( $product_permalink ); ?>" class="regular-text code"> <span class="description"><?php _e( 'Enter a custom base to use. A base <strong>must</strong> be set or WordPress will use default instead.', 'woocommerce' ); ?></span>
 					</td>
@@ -163,48 +163,43 @@ class WC_Admin_Permalink_Settings {
 	 * Save the settings.
 	 */
 	public function settings_save() {
-
 		if ( ! is_admin() ) {
 			return;
 		}
 
-		// We need to save the options ourselves; settings api does not trigger save for the permalinks page
-		if ( isset( $_POST['permalink_structure'] ) || isset( $_POST['category_base'] ) && isset( $_POST['product_permalink'] ) ) {
-			// Cat and tag bases
-			$woocommerce_product_category_slug  = wc_clean( $_POST['woocommerce_product_category_slug'] );
-			$woocommerce_product_tag_slug       = wc_clean( $_POST['woocommerce_product_tag_slug'] );
-			$woocommerce_product_attribute_slug = wc_clean( $_POST['woocommerce_product_attribute_slug'] );
-			$permalinks                         = get_option( 'woocommerce_permalinks' );
+		// We need to save the options ourselves; settings api does not trigger save for the permalinks page.
+		if ( isset( $_POST['permalink_structure'] ) ) {
+			$permalinks = get_option( 'woocommerce_permalinks' );
 
 			if ( ! $permalinks ) {
 				$permalinks = array();
 			}
 
-			$permalinks['category_base']    = untrailingslashit( $woocommerce_product_category_slug );
-			$permalinks['tag_base']         = untrailingslashit( $woocommerce_product_tag_slug );
-			$permalinks['attribute_base']   = untrailingslashit( $woocommerce_product_attribute_slug );
+			$permalinks['category_base']    = wc_sanitize_permalink( trim( $_POST['woocommerce_product_category_slug'] ) );
+			$permalinks['tag_base']         = wc_sanitize_permalink( trim( $_POST['woocommerce_product_tag_slug'] ) );
+			$permalinks['attribute_base']   = wc_sanitize_permalink( trim( $_POST['woocommerce_product_attribute_slug'] ) );
 
-			// Product base
-			$product_permalink = wc_clean( $_POST['product_permalink'] );
+			// Product base.
+			$product_permalink = isset( $_POST['product_permalink'] ) ? wc_clean( $_POST['product_permalink'] ) : '';
 
 			if ( 'custom' === $product_permalink ) {
-				// Get permalink without slashes
-				$product_permalink = trim( wc_clean( $_POST['product_permalink_structure'] ), '/' );
-
-				// This is an invalid base structure and breaks pages
-				if ( '%product_cat%' == $product_permalink ) {
-					$product_permalink = _x( 'product', 'slug', 'woocommerce' ) . '/' . $product_permalink;
+				if ( isset( $_POST['product_permalink_structure'] ) ) {
+					$product_permalink = preg_replace( '#/+#', '/', '/' . str_replace( '#', '', trim( $_POST['product_permalink_structure'] ) ) );
+				} else {
+					$product_permalink = '/';
 				}
 
-				// Prepending slash
-				$product_permalink = '/' . $product_permalink;
+				// This is an invalid base structure and breaks pages.
+				if ( '/%product_cat%' === $product_permalink ) {
+					$product_permalink = '/' . _x( 'product', 'slug', 'woocommerce' ) . $product_permalink;
+				}
 			} elseif ( empty( $product_permalink ) ) {
 				$product_permalink = false;
 			}
 
-			$permalinks['product_base'] = untrailingslashit( $product_permalink );
+			$permalinks['product_base'] = wc_sanitize_permalink( $product_permalink );
 
-			// Shop base may require verbose page rules if nesting pages
+			// Shop base may require verbose page rules if nesting pages.
 			$shop_page_id   = wc_get_page_id( 'shop' );
 			$shop_permalink = ( $shop_page_id > 0 && get_post( $shop_page_id ) ) ? get_page_uri( $shop_page_id ) : _x( 'shop', 'default-slug', 'woocommerce' );
 

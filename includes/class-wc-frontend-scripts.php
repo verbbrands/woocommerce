@@ -53,24 +53,32 @@ class WC_Frontend_Scripts {
 	public static function get_styles() {
 		return apply_filters( 'woocommerce_enqueue_styles', array(
 			'woocommerce-layout' => array(
-				'src'     => str_replace( array( 'http:', 'https:' ), '', WC()->plugin_url() ) . '/assets/css/woocommerce-layout.css',
+				'src'     => self::get_asset_url( 'assets/css/woocommerce-layout.css' ),
 				'deps'    => '',
 				'version' => WC_VERSION,
-				'media'   => 'all'
+				'media'   => 'all',
 			),
 			'woocommerce-smallscreen' => array(
-				'src'     => str_replace( array( 'http:', 'https:' ), '', WC()->plugin_url() ) . '/assets/css/woocommerce-smallscreen.css',
+				'src'     => self::get_asset_url( 'assets/css/woocommerce-smallscreen.css' ),
 				'deps'    => 'woocommerce-layout',
 				'version' => WC_VERSION,
-				'media'   => 'only screen and (max-width: ' . apply_filters( 'woocommerce_style_smallscreen_breakpoint', $breakpoint = '768px' ) . ')'
+				'media'   => 'only screen and (max-width: ' . apply_filters( 'woocommerce_style_smallscreen_breakpoint', $breakpoint = '768px' ) . ')',
 			),
 			'woocommerce-general' => array(
-				'src'     => str_replace( array( 'http:', 'https:' ), '', WC()->plugin_url() ) . '/assets/css/woocommerce.css',
+				'src'     => self::get_asset_url( 'assets/css/woocommerce.css' ),
 				'deps'    => '',
 				'version' => WC_VERSION,
-				'media'   => 'all'
+				'media'   => 'all',
 			),
 		) );
+	}
+
+	/**
+	 * Return protocol relative asset URL.
+	 * @param string $path
+	 */
+	private static function get_asset_url( $path ) {
+		return str_replace( array( 'http:', 'https:' ), '', plugins_url( $path, WC_PLUGIN_FILE ) );
 	}
 
 	/**
@@ -142,6 +150,174 @@ class WC_Frontend_Scripts {
 	}
 
 	/**
+	 * Register all WC scripts.
+	 */
+	private static function register_scripts() {
+		$suffix           = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
+		$register_scripts = array(
+			'flexslider' => array(
+				'src'     => self::get_asset_url( 'assets/js/flexslider/jquery.flexslider' . $suffix . '.js' ),
+				'deps'    => array( 'jquery' ),
+				'version' => '2.6.1',
+			),
+			'js-cookie' => array(
+				'src'     => self::get_asset_url( 'assets/js/js-cookie/js.cookie' . $suffix . '.js' ),
+				'deps'    => array(),
+				'version' => '2.1.3',
+			),
+			'jquery-blockui' => array(
+				'src'     => self::get_asset_url( 'assets/js/jquery-blockui/jquery.blockUI' . $suffix . '.js' ),
+				'deps'    => array( 'jquery' ),
+				'version' => '2.70',
+			),
+			'jquery-cookie' => array( // deprecated.
+				'src'     => self::get_asset_url( 'assets/js/jquery-cookie/jquery.cookie' . $suffix . '.js' ),
+				'deps'    => array( 'jquery' ),
+				'version' => '1.4.1',
+			),
+			'jquery-payment' => array(
+				'src'     => self::get_asset_url( 'assets/js/jquery-payment/jquery.payment' . $suffix . '.js' ),
+				'deps'    => array( 'jquery' ),
+				'version' => '1.4.1',
+			),
+			'photoswipe' => array(
+				'src'     => self::get_asset_url( 'assets/js/photoswipe/photoswipe' . $suffix . '.js' ),
+				'deps'    => array(),
+				'version' => '4.1.1',
+			),
+			'photoswipe-ui-default'  => array(
+				'src'     => self::get_asset_url( 'assets/js/photoswipe/photoswipe-ui-default' . $suffix . '.js' ),
+				'deps'    => array( 'photoswipe' ),
+				'version' => '4.1.1',
+			),
+			'prettyPhoto' => array( // deprecated.
+				'src'     => self::get_asset_url( 'assets/js/prettyPhoto/jquery.prettyPhoto' . $suffix . '.js' ),
+				'deps'    => array( 'jquery' ),
+				'version' => '3.1.6',
+			),
+			'prettyPhoto-init' => array( // deprecated.
+				'src'     => self::get_asset_url( 'assets/js/prettyPhoto/jquery.prettyPhoto.init' . $suffix . '.js' ),
+				'deps'    => array( 'jquery', 'prettyPhoto' ),
+				'version' => WC_VERSION,
+			),
+			'select2' => array(
+				'src'     => self::get_asset_url( 'assets/js/select2/select2.full' . $suffix . '.js' ),
+				'deps'    => array( 'jquery' ),
+				'version' => '4.0.3',
+			),
+			'wc-address-i18n' => array(
+				'src'     => self::get_asset_url( 'assets/js/frontend/address-i18n' . $suffix . '.js' ),
+				'deps'    => array( 'jquery' ),
+				'version' => WC_VERSION,
+			),
+			'wc-add-payment-method' => array(
+				'src'     => self::get_asset_url( 'assets/js/frontend/add-payment-method' . $suffix . '.js' ),
+				'deps'    => array( 'jquery', 'woocommerce' ),
+				'version' => WC_VERSION,
+			),
+			'wc-cart' => array(
+				'src'     => self::get_asset_url( 'assets/js/frontend/cart' . $suffix . '.js' ),
+				'deps'    => array( 'jquery', 'wc-country-select', 'wc-address-i18n' ),
+				'version' => WC_VERSION,
+			),
+			'wc-cart-fragments' => array(
+				'src'     => self::get_asset_url( 'assets/js/frontend/cart-fragments' . $suffix . '.js' ),
+				'deps'    => array( 'jquery', 'js-cookie' ),
+				'version' => WC_VERSION,
+			),
+			'wc-checkout' => array(
+				'src'     => self::get_asset_url( 'assets/js/frontend/checkout' . $suffix . '.js' ),
+				'deps'    => array( 'jquery', 'woocommerce', 'wc-country-select', 'wc-address-i18n' ),
+				'version' => WC_VERSION,
+			),
+			'wc-country-select' => array(
+				'src'     => self::get_asset_url( 'assets/js/frontend/country-select' . $suffix . '.js' ),
+				'deps'    => array( 'jquery' ),
+				'version' => WC_VERSION,
+			),
+			'wc-credit-card-form' => array(
+				'src'     => self::get_asset_url( 'assets/js/frontend/credit-card-form' . $suffix . '.js' ),
+				'deps'    => array( 'jquery', 'jquery-payment' ),
+				'version' => WC_VERSION,
+			),
+			'wc-add-to-cart' => array(
+				'src'     => self::get_asset_url( 'assets/js/frontend/add-to-cart' . $suffix . '.js' ),
+				'deps'    => array( 'jquery' ),
+				'version' => WC_VERSION,
+			),
+			'wc-add-to-cart-variation' => array(
+				'src'     => self::get_asset_url( 'assets/js/frontend/add-to-cart-variation' . $suffix . '.js' ),
+				'deps'    => array( 'jquery', 'wp-util' ),
+				'version' => WC_VERSION,
+			),
+			'wc-geolocation' => array(
+				'src'     => self::get_asset_url( 'assets/js/frontend/geolocation' . $suffix . '.js' ),
+				'deps'    => array( 'jquery' ),
+				'version' => WC_VERSION,
+			),
+			'wc-lost-password' => array(
+				'src'     => self::get_asset_url( 'assets/js/frontend/lost-password' . $suffix . '.js' ),
+				'deps'    => array( 'jquery', 'woocommerce' ),
+				'version' => WC_VERSION,
+			),
+			'wc-password-strength-meter' => array(
+				'src'     => self::get_asset_url( 'assets/js/frontend/password-strength-meter' . $suffix . '.js' ),
+				'deps'    => array( 'jquery', 'password-strength-meter' ),
+				'version' => WC_VERSION,
+			),
+			'wc-single-product' => array(
+				'src'     => self::get_asset_url( 'assets/js/frontend/single-product' . $suffix . '.js' ),
+				'deps'    => array( 'jquery' ),
+				'version' => WC_VERSION,
+			),
+			'woocommerce' => array(
+				'src'     => self::get_asset_url( 'assets/js/frontend/woocommerce' . $suffix . '.js' ),
+				'deps'    => array( 'jquery', 'jquery-blockui', 'js-cookie' ),
+				'version' => WC_VERSION,
+			),
+			'zoom' => array(
+				'src'     => self::get_asset_url( 'assets/js/zoom/jquery.zoom' . $suffix . '.js' ),
+				'deps'    => array( 'jquery' ),
+				'version' => '1.7.15',
+			),
+		);
+		foreach ( $register_scripts as $name => $props ) {
+			self::register_script( $name, $props['src'], $props['deps'], $props['version'] );
+		}
+	}
+
+	/**
+	 * Register all WC sty;es.
+	 */
+	private static function register_styles() {
+		$register_styles = array(
+			'photoswipe' => array(
+				'src'     => self::get_asset_url( 'assets/css/photoswipe/photoswipe.css' ),
+				'deps'    => array(),
+				'version' => WC_VERSION,
+			),
+			'photoswipe-default-skin' => array(
+				'src'     => self::get_asset_url( 'assets/css/photoswipe/default-skin/default-skin.css' ),
+				'deps'    => array( 'photoswipe' ),
+				'version' => WC_VERSION,
+			),
+			'select2' => array(
+				'src'     => self::get_asset_url( 'assets/css/select2.css' ),
+				'deps'    => array(),
+				'version' => WC_VERSION,
+			),
+			'woocommerce_prettyPhoto_css' => array( // deprecated.
+				'src'     => self::get_asset_url( 'assets/css/prettyPhoto.css' ),
+				'deps'    => array(),
+				'version' => WC_VERSION,
+			),
+		);
+		foreach ( $register_styles as $name => $props ) {
+			self::register_style( $name, $props['src'], $props['deps'], $props['version'] );
+		}
+	}
+
+	/**
 	 * Register/queue frontend scripts.
 	 */
 	public static function load_scripts() {
@@ -151,65 +327,51 @@ class WC_Frontend_Scripts {
 			return;
 		}
 
-		$suffix               = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
-		$lightbox_en          = 'yes' === get_option( 'woocommerce_enable_lightbox' );
-		$ajax_cart_en         = 'yes' === get_option( 'woocommerce_enable_ajax_add_to_cart' );
-		$assets_path          = str_replace( array( 'http:', 'https:' ), '', WC()->plugin_url() ) . '/assets/';
-		$frontend_script_path = $assets_path . 'js/frontend/';
+		self::register_scripts();
+		self::register_styles();
 
-		// Register any scripts for later use, or used as dependencies
-		self::register_script( 'select2', $assets_path . 'js/select2/select2' . $suffix . '.js', array( 'jquery' ), '3.5.4' );
-		self::register_script( 'jquery-blockui', $assets_path . 'js/jquery-blockui/jquery.blockUI' . $suffix . '.js', array( 'jquery' ), '2.70' );
-		self::register_script( 'jquery-payment', $assets_path . 'js/jquery-payment/jquery.payment' . $suffix . '.js', array( 'jquery' ), '1.2.4' );
-		self::register_script( 'jquery-cookie', $assets_path . 'js/jquery-cookie/jquery.cookie' . $suffix . '.js', array( 'jquery' ), '1.4.1' );
-		self::register_script( 'wc-credit-card-form', $frontend_script_path . 'credit-card-form' . $suffix . '.js', array( 'jquery', 'jquery-payment' ) );
-		self::register_script( 'wc-add-to-cart-variation', $frontend_script_path . 'add-to-cart-variation' . $suffix . '.js', array( 'jquery', 'wp-util' ) );
-		self::register_script( 'wc-single-product', $frontend_script_path . 'single-product' . $suffix . '.js' );
-		self::register_script( 'wc-country-select', $frontend_script_path . 'country-select' . $suffix . '.js' );
-		self::register_script( 'wc-address-i18n', $frontend_script_path . 'address-i18n' . $suffix . '.js' );
-		self::register_script( 'wc-password-strength-meter', $frontend_script_path . 'password-strength-meter' . $suffix . '.js', array( 'jquery', 'password-strength-meter' ) );
-
-		// Register frontend scripts conditionally
-		if ( $ajax_cart_en ) {
-			self::enqueue_script( 'wc-add-to-cart', $frontend_script_path . 'add-to-cart' . $suffix . '.js' );
+		if ( 'yes' === get_option( 'woocommerce_enable_ajax_add_to_cart' ) ) {
+			self::enqueue_script( 'wc-add-to-cart' );
 		}
 		if ( is_cart() ) {
-			self::enqueue_script( 'wc-cart', $frontend_script_path . 'cart' . $suffix . '.js', array( 'jquery', 'wc-country-select', 'wc-address-i18n' ) );
+			self::enqueue_script( 'wc-cart' );
 		}
 		if ( is_checkout() || is_account_page() ) {
 			self::enqueue_script( 'select2' );
-			self::enqueue_style( 'select2', $assets_path . 'css/select2.css' );
+			self::enqueue_style( 'select2' );
 
-			// Password strength meter.
-			// Load in checkout, account login and edit account page.
-			if ( ( 'no' === get_option( 'woocommerce_registration_generate_password' ) && ! is_user_logged_in() ) || is_edit_account_page() ) {
+			// Password strength meter. Load in checkout, account login and edit account page.
+			if ( ( 'no' === get_option( 'woocommerce_registration_generate_password' ) && ! is_user_logged_in() ) || is_edit_account_page() || is_lost_password_page() ) {
 				self::enqueue_script( 'wc-password-strength-meter' );
 			}
 		}
 		if ( is_checkout() ) {
-			self::enqueue_script( 'wc-checkout', $frontend_script_path . 'checkout' . $suffix . '.js', array( 'jquery', 'woocommerce', 'wc-country-select', 'wc-address-i18n' ) );
+			self::enqueue_script( 'wc-checkout' );
 		}
 		if ( is_add_payment_method_page() ) {
-			self::enqueue_script( 'wc-add-payment-method', $frontend_script_path . 'add-payment-method' . $suffix . '.js', array( 'jquery', 'woocommerce' ) );
+			self::enqueue_script( 'wc-add-payment-method' );
 		}
 		if ( is_lost_password_page() ) {
-			self::enqueue_script( 'wc-lost-password', $frontend_script_path . 'lost-password' . $suffix . '.js', array( 'jquery', 'woocommerce' ) );
+			self::enqueue_script( 'wc-lost-password' );
 		}
-		if ( $lightbox_en && ( is_product() || ( ! empty( $post->post_content ) && strstr( $post->post_content, '[product_page' ) ) ) ) {
-			self::enqueue_script( 'prettyPhoto', $assets_path . 'js/prettyPhoto/jquery.prettyPhoto' . $suffix . '.js', array( 'jquery' ), '3.1.6', true );
-			self::enqueue_script( 'prettyPhoto-init', $assets_path . 'js/prettyPhoto/jquery.prettyPhoto.init' . $suffix . '.js', array( 'jquery','prettyPhoto' ) );
-			self::enqueue_style( 'woocommerce_prettyPhoto_css', $assets_path . 'css/prettyPhoto.css' );
-		}
-		if ( is_product() ) {
+		if ( is_product() || ( ! empty( $post->post_content ) && strstr( $post->post_content, '[product_page' ) ) ) {
+			self::enqueue_script( 'flexslider' );
+			self::enqueue_script( 'photoswipe-ui-default' );
+			self::enqueue_style( 'photoswipe-default-skin' );
+			self::enqueue_script( 'zoom' );
 			self::enqueue_script( 'wc-single-product' );
 		}
 		if ( 'geolocation_ajax' === get_option( 'woocommerce_default_customer_address' ) ) {
-			self::enqueue_script( 'wc-geolocation', $frontend_script_path . 'geolocation' . $suffix . '.js', array( 'jquery' ) );
+			$ua = wc_get_user_agent(); // Exclude common bots from geolocation by user agent.
+
+			if ( ! strstr( $ua, 'bot' ) && ! strstr( $ua, 'spider' ) && ! strstr( $ua, 'crawl' ) ) {
+				self::enqueue_script( 'wc-geolocation' );
+			}
 		}
 
 		// Global frontend scripts
-		self::enqueue_script( 'woocommerce', $frontend_script_path . 'woocommerce' . $suffix . '.js', array( 'jquery', 'jquery-blockui' ) );
-		self::enqueue_script( 'wc-cart-fragments', $frontend_script_path . 'cart-fragments' . $suffix . '.js', array( 'jquery', 'jquery-cookie' ) );
+		self::enqueue_script( 'woocommerce' );
+		self::enqueue_script( 'wc-cart-fragments' );
 
 		// CSS Styles
 		if ( $enqueue_styles = self::get_styles() ) {
@@ -246,7 +408,7 @@ class WC_Frontend_Scripts {
 			case 'woocommerce' :
 				return array(
 					'ajax_url'    => WC()->ajax_url(),
-					'wc_ajax_url' => WC_AJAX::get_endpoint( "%%endpoint%%" )
+					'wc_ajax_url' => WC_AJAX::get_endpoint( "%%endpoint%%" ),
 				);
 			break;
 			case 'wc-geolocation' :
@@ -254,13 +416,23 @@ class WC_Frontend_Scripts {
 					'wc_ajax_url'  => WC_AJAX::get_endpoint( "%%endpoint%%" ),
 					'home_url'     => home_url(),
 					'is_available' => ! ( is_cart() || is_account_page() || is_checkout() || is_customize_preview() ) ? '1' : '0',
-					'hash'         => isset( $_GET['v'] ) ? wc_clean( $_GET['v'] ) : ''
+					'hash'         => isset( $_GET['version'] ) ? wc_clean( $_GET['version'] ) : '',
 				);
 			break;
 			case 'wc-single-product' :
 				return array(
 					'i18n_required_rating_text' => esc_attr__( 'Please select a rating', 'woocommerce' ),
 					'review_rating_required'    => get_option( 'woocommerce_review_rating_required' ),
+					'flexslider'                => apply_filters( 'woocommerce_single_product_carousel_options', array(
+						'rtl'            => is_rtl(),
+						'animation'      => 'slide',
+						'smoothHeight'   => true,
+						'directionNav'   => false,
+						'controlNav'     => 'thumbnails',
+						'slideshow'      => false,
+						'animationSpeed' => 500,
+						'animationLoop'  => false, // Breaks photoswipe pagination if true.
+					) ),
 				);
 			break;
 			case 'wc-checkout' :
@@ -273,7 +445,7 @@ class WC_Frontend_Scripts {
 					'option_guest_checkout'     => get_option( 'woocommerce_enable_guest_checkout' ),
 					'checkout_url'              => WC_AJAX::get_endpoint( "checkout" ),
 					'is_checkout'               => is_page( wc_get_page_id( 'checkout' ) ) && empty( $wp->query_vars['order-pay'] ) && ! isset( $wp->query_vars['order-received'] ) ? 1 : 0,
-					'debug_mode'                => defined('WP_DEBUG') && WP_DEBUG,
+					'debug_mode'                => defined( 'WP_DEBUG' ) && WP_DEBUG,
 					'i18n_checkout_error'       => esc_attr__( 'Error processing checkout. Please try again.', 'woocommerce' ),
 				);
 			break;
@@ -289,23 +461,25 @@ class WC_Frontend_Scripts {
 					'ajax_url'                     => WC()->ajax_url(),
 					'wc_ajax_url'                  => WC_AJAX::get_endpoint( "%%endpoint%%" ),
 					'update_shipping_method_nonce' => wp_create_nonce( "update-shipping-method" ),
+					'apply_coupon_nonce'           => wp_create_nonce( "apply-coupon" ),
+					'remove_coupon_nonce'          => wp_create_nonce( "remove-coupon" ),
 				);
 			break;
 			case 'wc-cart-fragments' :
 				return array(
 					'ajax_url'      => WC()->ajax_url(),
 					'wc_ajax_url'   => WC_AJAX::get_endpoint( "%%endpoint%%" ),
-					'fragment_name' => apply_filters( 'woocommerce_cart_fragment_name', 'wc_fragments' )
+					'fragment_name' => apply_filters( 'woocommerce_cart_fragment_name', 'wc_fragments' ),
 				);
 			break;
 			case 'wc-add-to-cart' :
 				return array(
 					'ajax_url'                => WC()->ajax_url(),
 					'wc_ajax_url'             => WC_AJAX::get_endpoint( "%%endpoint%%" ),
-					'i18n_view_cart'          => esc_attr__( 'View Cart', 'woocommerce' ),
+					'i18n_view_cart'          => esc_attr__( 'View cart', 'woocommerce' ),
 					'cart_url'                => apply_filters( 'woocommerce_add_to_cart_redirect', wc_get_cart_url() ),
 					'is_cart'                 => is_cart(),
-					'cart_redirect_after_add' => get_option( 'woocommerce_cart_redirect_after_add' )
+					'cart_redirect_after_add' => get_option( 'woocommerce_cart_redirect_after_add' ),
 				);
 			break;
 			case 'wc-add-to-cart-variation' :
@@ -313,17 +487,16 @@ class WC_Frontend_Scripts {
 				wc_get_template( 'single-product/add-to-cart/variation.php' );
 
 				return array(
+					'wc_ajax_url'                      => WC_AJAX::get_endpoint( "%%endpoint%%" ),
 					'i18n_no_matching_variations_text' => esc_attr__( 'Sorry, no products matched your selection. Please choose a different combination.', 'woocommerce' ),
 					'i18n_make_a_selection_text'       => esc_attr__( 'Please select some product options before adding this product to your cart.', 'woocommerce' ),
-					'i18n_unavailable_text'            => esc_attr__( 'Sorry, this product is unavailable. Please choose a different combination.', 'woocommerce' )
+					'i18n_unavailable_text'            => esc_attr__( 'Sorry, this product is unavailable. Please choose a different combination.', 'woocommerce' ),
 				);
 			break;
 			case 'wc-country-select' :
 				return array(
 					'countries'                 => json_encode( array_merge( WC()->countries->get_allowed_country_states(), WC()->countries->get_shipping_country_states() ) ),
 					'i18n_select_state_text'    => esc_attr__( 'Select an option&hellip;', 'woocommerce' ),
-					'i18n_matches_1'            => _x( 'One result is available, press enter to select it.', 'enhanced select', 'woocommerce' ),
-					'i18n_matches_n'            => _x( '%qty% results are available, use up and down arrow keys to navigate.', 'enhanced select', 'woocommerce' ),
 					'i18n_no_matches'           => _x( 'No matches found', 'enhanced select', 'woocommerce' ),
 					'i18n_ajax_error'           => _x( 'Loading failed', 'enhanced select', 'woocommerce' ),
 					'i18n_input_too_short_1'    => _x( 'Please enter 1 or more characters', 'enhanced select', 'woocommerce' ),
@@ -340,7 +513,7 @@ class WC_Frontend_Scripts {
 				return array(
 					'min_password_strength' => apply_filters( 'woocommerce_min_password_strength', 3 ),
 					'i18n_password_error'   => esc_attr__( 'Please enter a stronger password.', 'woocommerce' ),
-					'i18n_password_hint'    => esc_attr__( 'The password should be at least seven characters long. To make it stronger, use upper and lower case letters, numbers and symbols like ! " ? $ % ^ &amp; ).', 'woocommerce' )
+					'i18n_password_hint'    => esc_attr__( 'The password should be at least seven characters long. To make it stronger, use upper and lower case letters, numbers and symbols like ! " ? $ % ^ &amp; ).', 'woocommerce' ),
 				);
 			break;
 		}

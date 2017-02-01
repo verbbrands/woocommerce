@@ -28,10 +28,22 @@ module.exports = function( grunt ) {
 			]
 		},
 
+		// Sass linting with Stylelint.
+		stylelint: {
+			options: {
+				configFile: '.stylelintrc'
+			},
+			all: [
+				'<%= dirs.css %>/*.scss',
+				'!<%= dirs.css %>/select2.scss'
+			]
+		},
+
 		// Minify .js files.
 		uglify: {
 			options: {
-				preserveComments: 'some'
+				// Preserve comments that start with a bang.
+				preserveComments: /^!/
 			},
 			admin: {
 				files: [{
@@ -50,6 +62,7 @@ module.exports = function( grunt ) {
 					'<%= dirs.js %>/accounting/accounting.min.js': ['<%= dirs.js %>/accounting/accounting.js'],
 					'<%= dirs.js %>/jquery-blockui/jquery.blockUI.min.js': ['<%= dirs.js %>/jquery-blockui/jquery.blockUI.js'],
 					'<%= dirs.js %>/jquery-cookie/jquery.cookie.min.js': ['<%= dirs.js %>/jquery-cookie/jquery.cookie.js'],
+					'<%= dirs.js %>/js-cookie/js.cookie.min.js': ['<%= dirs.js %>/js-cookie/js.cookie.js'],
 					'<%= dirs.js %>/jquery-flot/jquery.flot.min.js': ['<%= dirs.js %>/jquery-flot/jquery.flot.js'],
 					'<%= dirs.js %>/jquery-flot/jquery.flot.pie.min.js': ['<%= dirs.js %>/jquery-flot/jquery.flot.pie.js'],
 					'<%= dirs.js %>/jquery-flot/jquery.flot.resize.min.js': ['<%= dirs.js %>/jquery-flot/jquery.flot.resize.js'],
@@ -62,6 +75,10 @@ module.exports = function( grunt ) {
 					'<%= dirs.js %>/jquery-ui-touch-punch/jquery-ui-touch-punch.min.js': ['<%= dirs.js %>/jquery-ui-touch-punch/jquery-ui-touch-punch.js'],
 					'<%= dirs.js %>/prettyPhoto/jquery.prettyPhoto.init.min.js': ['<%= dirs.js %>/prettyPhoto/jquery.prettyPhoto.init.js'],
 					'<%= dirs.js %>/prettyPhoto/jquery.prettyPhoto.min.js': ['<%= dirs.js %>/prettyPhoto/jquery.prettyPhoto.js'],
+					'<%= dirs.js %>/flexslider/jquery.flexslider.min.js': ['<%= dirs.js %>/flexslider/jquery.flexslider.js'],
+					'<%= dirs.js %>/zoom/jquery.zoom.min.js': ['<%= dirs.js %>/zoom/jquery.zoom.js'],
+					'<%= dirs.js %>/photoswipe/photoswipe.min.js': ['<%= dirs.js %>/photoswipe/photoswipe.js'],
+					'<%= dirs.js %>/photoswipe/photoswipe-ui-default.min.js': ['<%= dirs.js %>/photoswipe/photoswipe-ui-default.js'],
 					'<%= dirs.js %>/round/round.min.js': ['<%= dirs.js %>/round/round.js'],
 					'<%= dirs.js %>/select2/select2.min.js': ['<%= dirs.js %>/select2/select2.js'],
 					'<%= dirs.js %>/stupidtable/stupidtable.min.js': ['<%= dirs.js %>/stupidtable/stupidtable.js'],
@@ -145,7 +162,7 @@ module.exports = function( grunt ) {
 				type: 'wp-plugin',
 				domainPath: 'i18n/languages',
 				potHeaders: {
-					'report-msgid-bugs-to': 'https://github.com/woothemes/woocommerce/issues',
+					'report-msgid-bugs-to': 'https://github.com/woocommerce/woocommerce/issues',
 					'language-team': 'LANGUAGE <EMAIL@ADDRESS>'
 				}
 			},
@@ -184,11 +201,12 @@ module.exports = function( grunt ) {
 			},
 			files: {
 				src:  [
-					'**/*.php', // Include all files
-					'!apigen/**', // Exclude apigen/
+					'**/*.php',         // Include all files
+					'!apigen/**',       // Exclude apigen/
 					'!node_modules/**', // Exclude node_modules/
-					'!tests/**', // Exclude tests/
-					'!tmp/**' // Exclude tmp/
+					'!tests/**',        // Exclude tests/
+					'!vendor/**',       // Exclude vendor/
+					'!tmp/**'           // Exclude tmp/
 				],
 				expand: true
 			}
@@ -202,7 +220,7 @@ module.exports = function( grunt ) {
 			},
 			apigen: {
 				command: [
-					'apigen generate',
+					'apigen generate -q',
 					'cd apigen',
 					'php hook-docs.php'
 				].join( '&&' )
@@ -213,6 +231,27 @@ module.exports = function( grunt ) {
 		clean: {
 			apigen: {
 				src: [ 'wc-apidocs' ]
+			}
+		},
+
+		// PHP Code Sniffer.
+		phpcs: {
+			options: {
+				bin: 'vendor/bin/phpcs',
+				standard: './phpcs.ruleset.xml'
+			},
+			dist: {
+				src:  [
+					'**/*.php',                                                  // Include all files
+					'!apigen/**',                                                // Exclude apigen/
+					'!includes/api/legacy/**',                                   // Exclude legacy REST API
+					'!includes/gateways/simplify-commerce/includes/Simplify/**', // Exclude simplify commerce SDK
+					'!includes/libraries/**',                                    // Exclude libraries/
+					'!node_modules/**',                                          // Exclude node_modules/
+					'!tests/cli/**',                                             // Exclude tests/cli/
+					'!tmp/**',                                                   // Exclude tmp/
+					'!vendor/**'                                                 // Exclude vendor/
+				]
 			}
 		}
 	});
@@ -227,6 +266,8 @@ module.exports = function( grunt ) {
 	grunt.loadNpmTasks( 'grunt-contrib-cssmin' );
 	grunt.loadNpmTasks( 'grunt-contrib-watch' );
 	grunt.loadNpmTasks( 'grunt-contrib-clean' );
+	grunt.loadNpmTasks( 'grunt-stylelint' );
+	grunt.loadNpmTasks( 'grunt-phpcs' );
 
 	// Register tasks
 	grunt.registerTask( 'default', [

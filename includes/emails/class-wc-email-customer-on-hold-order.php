@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-if ( ! class_exists( 'WC_Email_Customer_Processing_Order' ) ) :
+if ( ! class_exists( 'WC_Email_Customer_On_Hold_Order' ) ) :
 
 /**
  * Customer On-hold Order Email.
@@ -12,7 +12,7 @@ if ( ! class_exists( 'WC_Email_Customer_Processing_Order' ) ) :
  * An email sent to the customer when a new order is on-hold for.
  *
  * @class       WC_Email_Customer_On_Hold_Order
- * @version     2.0.0
+ * @version     2.6.0
  * @package     WooCommerce/Classes/Emails
  * @author      WooThemes
  * @extends     WC_Email
@@ -22,7 +22,7 @@ class WC_Email_Customer_On_Hold_Order extends WC_Email {
 	/**
 	 * Constructor.
 	 */
-	function __construct() {
+	public function __construct() {
 		$this->id               = 'customer_on_hold_order';
 		$this->customer_email   = true;
 		$this->title            = __( 'Order on-hold', 'woocommerce' );
@@ -34,6 +34,7 @@ class WC_Email_Customer_On_Hold_Order extends WC_Email {
 
 		// Triggers for this email
 		add_action( 'woocommerce_order_status_pending_to_on-hold_notification', array( $this, 'trigger' ) );
+		add_action( 'woocommerce_order_status_failed_to_on-hold_notification', array( $this, 'trigger' ) );
 
 		// Call parent constructor
 		parent::__construct();
@@ -44,16 +45,16 @@ class WC_Email_Customer_On_Hold_Order extends WC_Email {
 	 *
 	 * @param int $order_id
 	 */
-	function trigger( $order_id ) {
+	public function trigger( $order_id ) {
 
 		if ( $order_id ) {
 			$this->object       = wc_get_order( $order_id );
-			$this->recipient    = $this->object->billing_email;
+			$this->recipient    = $this->object->get_billing_email();
 
 			$this->find['order-date']      = '{order_date}';
 			$this->find['order-number']    = '{order_number}';
 
-			$this->replace['order-date']   = date_i18n( wc_date_format(), strtotime( $this->object->order_date ) );
+			$this->replace['order-date']   = date_i18n( wc_date_format(), $this->object->get_date_created() );
 			$this->replace['order-number'] = $this->object->get_order_number();
 		}
 
@@ -70,13 +71,13 @@ class WC_Email_Customer_On_Hold_Order extends WC_Email {
 	 * @access public
 	 * @return string
 	 */
-	function get_content_html() {
+	public function get_content_html() {
 		return wc_get_template_html( $this->template_html, array(
 			'order'         => $this->object,
 			'email_heading' => $this->get_heading(),
 			'sent_to_admin' => false,
 			'plain_text'    => false,
-			'email'			=> $this
+			'email'			=> $this,
 		) );
 	}
 
@@ -86,13 +87,13 @@ class WC_Email_Customer_On_Hold_Order extends WC_Email {
 	 * @access public
 	 * @return string
 	 */
-	function get_content_plain() {
+	public function get_content_plain() {
 		return wc_get_template_html( $this->template_plain, array(
 			'order'         => $this->object,
 			'email_heading' => $this->get_heading(),
 			'sent_to_admin' => false,
 			'plain_text'    => true,
-			'email'			=> $this
+			'email'			=> $this,
 		) );
 	}
 }

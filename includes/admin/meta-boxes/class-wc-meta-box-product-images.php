@@ -38,9 +38,9 @@ class WC_Meta_Box_Product_Images {
 						$product_image_gallery = implode( ',', $attachment_ids );
 					}
 
-					$attachments = array_filter( explode( ',', $product_image_gallery ) );
-
-					$update_meta = false;
+					$attachments         = array_filter( explode( ',', $product_image_gallery ) );
+					$update_meta         = false;
+					$updated_gallery_ids = array();
 
 					if ( ! empty( $attachments ) ) {
 						foreach ( $attachments as $attachment_id ) {
@@ -49,7 +49,6 @@ class WC_Meta_Box_Product_Images {
 							// if attachment is empty skip
 							if ( empty( $attachment ) ) {
 								$update_meta = true;
-
 								continue;
 							}
 
@@ -76,7 +75,7 @@ class WC_Meta_Box_Product_Images {
 
 		</div>
 		<p class="add_product_images hide-if-no-js">
-			<a href="#" data-choose="<?php esc_attr_e( 'Add Images to Product Gallery', 'woocommerce' ); ?>" data-update="<?php esc_attr_e( 'Add to gallery', 'woocommerce' ); ?>" data-delete="<?php esc_attr_e( 'Delete image', 'woocommerce' ); ?>" data-text="<?php esc_attr_e( 'Delete', 'woocommerce' ); ?>"><?php _e( 'Add product gallery images', 'woocommerce' ); ?></a>
+			<a href="#" data-choose="<?php esc_attr_e( 'Add images to product gallery', 'woocommerce' ); ?>" data-update="<?php esc_attr_e( 'Add to gallery', 'woocommerce' ); ?>" data-delete="<?php esc_attr_e( 'Delete image', 'woocommerce' ); ?>" data-text="<?php esc_attr_e( 'Delete', 'woocommerce' ); ?>"><?php _e( 'Add product gallery images', 'woocommerce' ); ?></a>
 		</p>
 		<?php
 	}

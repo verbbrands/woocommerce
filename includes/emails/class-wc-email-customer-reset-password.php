@@ -43,7 +43,7 @@ class WC_Email_Customer_Reset_Password extends WC_Email {
 	/**
 	 * Constructor.
 	 */
-	function __construct() {
+	public function __construct() {
 
 		$this->id               = 'customer_reset_password';
 		$this->title            = __( 'Reset password', 'woocommerce' );
@@ -53,8 +53,8 @@ class WC_Email_Customer_Reset_Password extends WC_Email {
 		$this->template_html    = 'emails/customer-reset-password.php';
 		$this->template_plain   = 'emails/plain/customer-reset-password.php';
 
-		$this->subject          = __( 'Password Reset for {site_title}', 'woocommerce');
-		$this->heading          = __( 'Password Reset Instructions', 'woocommerce');
+		$this->subject          = __( 'Password reset for {site_title}', 'woocommerce' );
+		$this->heading          = __( 'Password reset instructions', 'woocommerce' );
 
 		// Trigger
 		add_action( 'woocommerce_reset_password_notification', array( $this, 'trigger' ), 10, 2 );
@@ -69,7 +69,7 @@ class WC_Email_Customer_Reset_Password extends WC_Email {
 	 * @param string $user_login
 	 * @param string $reset_key
 	 */
-	function trigger( $user_login = '', $reset_key = '' ) {
+	public function trigger( $user_login = '', $reset_key = '' ) {
 		if ( $user_login && $reset_key ) {
 			$this->object     = get_user_by( 'login', $user_login );
 
@@ -93,7 +93,7 @@ class WC_Email_Customer_Reset_Password extends WC_Email {
 	 * @access public
 	 * @return string
 	 */
-	function get_content_html() {
+	public function get_content_html() {
 		return wc_get_template_html( $this->template_html, array(
 			'email_heading' => $this->get_heading(),
 			'user_login'    => $this->user_login,
@@ -101,7 +101,7 @@ class WC_Email_Customer_Reset_Password extends WC_Email {
 			'blogname'      => $this->get_blogname(),
 			'sent_to_admin' => false,
 			'plain_text'    => false,
-			'email'			=> $this
+			'email'			=> $this,
 		) );
 	}
 
@@ -111,7 +111,7 @@ class WC_Email_Customer_Reset_Password extends WC_Email {
 	 * @access public
 	 * @return string
 	 */
-	function get_content_plain() {
+	public function get_content_plain() {
 		return wc_get_template_html( $this->template_plain, array(
 			'email_heading' => $this->get_heading(),
 			'user_login'    => $this->user_login,
@@ -119,7 +119,7 @@ class WC_Email_Customer_Reset_Password extends WC_Email {
 			'blogname'      => $this->get_blogname(),
 			'sent_to_admin' => false,
 			'plain_text'    => true,
-			'email'			=> $this
+			'email'			=> $this,
 		) );
 	}
 }
